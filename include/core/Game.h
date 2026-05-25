@@ -45,7 +45,7 @@ private:
     Player* player;
 
 
-    
+    sf::Font uiFont;
     TypingText typingText;
 
     SentenceGenerator generator;

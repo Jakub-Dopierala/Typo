@@ -25,6 +25,7 @@ public:
 
     bool isComplete() const;
 
+
 private:
     void rebuildLetters();
 
@@ -33,6 +34,8 @@ private:
     std::string currentInput;
 
     sf::Font font;
-
     std::vector<sf::Text> letters;
+    TypingText(const TypingText&) = delete;
+    TypingText& operator=(const TypingText&) = delete;
+    
 };

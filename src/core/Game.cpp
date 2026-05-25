@@ -16,6 +16,7 @@ Game::Game()
     currentLevel = 1;
 
     gameOver = false;
+    //uiFont.openFromFile("assets/fonts/pixel.ttf");
 }
 
 void Game::run()
