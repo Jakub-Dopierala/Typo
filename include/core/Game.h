@@ -5,6 +5,7 @@
 #include <SFML/Window.hpp>
 #include "core/GameObject.h"
 #include "entities/Player.h"
+#include "entities/Enemy.h"
 #include "systems/TypingText.h"
 #include "systems/SentenceGenerator.h"
 
@@ -25,6 +26,14 @@ private:
     void render();
 
     void spawnEnemy();
+    void removeCurrentEnemy();
+    float timer;
+    bool wordCompleted = false;
+    float completionTimer = 0.f;
+
+    int currentLevel;
+    bool gameOver;
+
 
 private:
     sf::RenderWindow window;
@@ -32,9 +41,11 @@ private:
     sf::Clock clock;
 
     std::vector<std::unique_ptr<GameObject>> objects;
-
+    Enemy* currentEnemy;
     Player* player;
 
+
+    
     TypingText typingText;
 
     SentenceGenerator generator;

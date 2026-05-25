@@ -1,16 +1,104 @@
 #include "systems/SentenceGenerator.h"
-#include <cstdlib>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 SentenceGenerator::SentenceGenerator()
 {
-    easySentences.push_back("destroy enemy");
-    easySentences.push_back("attack goblin");
-    easySentences.push_back("defeat skeleton");
+    loadFastWords();
 }
 
-std::string SentenceGenerator::generateSentence(int level)
+void SentenceGenerator::loadFastWords()
 {
-    int index = rand() % easySentences.size();
+    std::ifstream file("assets/phrases/fast_enemy.txt");
 
-    return easySentences[index];
+    if (!file.is_open())
+    {
+        std::cout << "ERROR: Could not open fast_enemy.txt\n";
+        return;
+    }
+
+    std::string line;
+
+    enum Section
+    {
+        NONE,
+        VERBS,
+        ADJECTIVES,
+        NOUNS
+    };
+
+    Section currentSection = NONE;
+
+    while (std::getline(file, line))
+    {
+        if (line == "VERBS")
+        {
+            currentSection = VERBS;
+            continue;
+        }
+
+        if (line == "ADJECTIVES")
+        {
+            currentSection = ADJECTIVES;
+            continue;
+        }
+
+        if (line == "NOUNS")
+        {
+            currentSection = NOUNS;
+            continue;
+        }
+
+        if (line.empty())
+        {
+            continue;
+        }
+
+        switch (currentSection)
+        {
+            case VERBS:
+                fastVerbs.push_back(line);
+                break;
+
+            case ADJECTIVES:
+                fastAdjectives.push_back(line);
+                break;
+
+            case NOUNS:
+                fastNouns.push_back(line);
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
+std::string SentenceGenerator::generateFastSentence(int level)
+{
+    // Limit difficulty growth
+    int maxIndex = std::min(level, (int)fastVerbs.size() - 1);
+
+    int verbIndex = rand() % (maxIndex + 1);
+    int nounIndex = rand() % (maxIndex + 1);
+
+    std::string sentence;
+
+    sentence += fastVerbs[verbIndex];
+    sentence += " ";
+
+    // Add adjective later in progression
+    if (level >= 3)
+    {
+        int adjectiveIndex = rand() % (maxIndex + 1);
+
+        sentence += fastAdjectives[adjectiveIndex];
+        sentence += " ";
+    }
+
+    sentence += fastNouns[nounIndex];
+
+    return sentence;
 }

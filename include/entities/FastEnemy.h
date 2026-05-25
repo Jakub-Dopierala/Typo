@@ -1,14 +1,14 @@
 #pragma once
 #include "entities/Enemy.h"
-
-/*
-    Fast enemy:
-    shorter phrases but less time to type.
-*/
+#include <cstddef>
 
 class FastEnemy : public Enemy {
 public:
-    FastEnemy();
+    FastEnemy(int level, std::size_t phraseLength);
 
     void onDefeat() override;
+
+private:
+    int currentLevel;
+    std::size_t currentPhraseLength;
 };

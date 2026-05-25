@@ -1,17 +1,25 @@
 #pragma once
+
 #include <string>
 #include <vector>
 
 /*
-    Generates phrases depending on difficulty.
+    Handles loading and generating phrases
+    for different enemy types.
 */
 
-class SentenceGenerator {
+class SentenceGenerator
+{
 public:
     SentenceGenerator();
 
-    std::string generateSentence(int level);
+    std::string generateFastSentence(int level);
 
 private:
-    std::vector<std::string> easySentences;
+    void loadFastWords();
+
+private:
+    std::vector<std::string> fastVerbs;
+    std::vector<std::string> fastAdjectives;
+    std::vector<std::string> fastNouns;
 };

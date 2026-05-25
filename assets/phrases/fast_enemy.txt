@@ -1,0 +1,17 @@
+VERBS
+hit
+strike
+destroy
+annihilate
+
+ADJECTIVES
+small
+dangerous
+formidable
+malevolent
+
+NOUNS
+rat
+goblin
+creature
+abomination

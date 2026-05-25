@@ -1,9 +1,12 @@
 #include "entities/FastEnemy.h"
 #include <iostream>
 
-FastEnemy::FastEnemy()
+FastEnemy::FastEnemy(int level, std::size_t phraseLength)
+    : currentLevel(level),
+      currentPhraseLength(phraseLength)
 {
-    maxTime = 5.f;
+    int length = static_cast<int>(phraseLength);
+    maxTime = 3.f+(0.25f*length)-(0.15f*level);
     remainingTime = maxTime;
 
     body.setFillColor(sf::Color::Yellow);
