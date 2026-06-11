@@ -32,7 +32,25 @@ private:
     float completionTimer = 0.f;
 
     int currentLevel;
-    bool gameOver;
+
+    void resetGame();
+    void drawMenu(const std::vector<std::string>& options);
+
+    enum class GameState
+    {
+        MainMenu,
+        Playing,
+        Paused,
+        GameOver
+    };
+
+    GameState state;
+
+    int menuSelection;
+
+    std::vector<std::string> mainMenuOptions;
+    std::vector<std::string> pauseMenuOptions;
+    std::vector<std::string> gameOverOptions;
 
 
 private:

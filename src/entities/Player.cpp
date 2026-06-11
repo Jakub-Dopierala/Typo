@@ -1,12 +1,12 @@
 #include "entities/Player.h"
 
 Player::Player()
-    : health(3), score(0), comboMultiplier(1.0f)
+    : health(2), score(0), comboMultiplier(1.0f)
 {
     body.setSize(sf::Vector2f(80.f, 80.f));
     body.setFillColor(sf::Color::Blue);
 
-    position = {1280.f / 3.f, 720.f * 0.75f};
+    position = {1280.f / 4.f, 720.f * 0.75f};
     body.setPosition(position);
 }
 

@@ -5,7 +5,7 @@ Enemy::Enemy()
     body.setSize(sf::Vector2f(80.f, 80.f));
     body.setFillColor(sf::Color::Red);
 
-    position = {1280.f * (2.f / 3.f), 720.f * 0.75f};
+    position = {1280.f * (3.f / 4.f), 720.f * 0.75f};
     body.setPosition(position);
 
     maxTime = 10.f;

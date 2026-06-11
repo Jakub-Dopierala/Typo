@@ -9,7 +9,6 @@ TypingText::TypingText()
         std::cout << "ERROR: Could not load font!\n";
     }
     
-    
 }
 
 void TypingText::setText(const std::string& text)
@@ -52,11 +51,9 @@ void TypingText::rebuildLetters()
 {
     letters.clear();
 
-    
-
     float boxX = (1280.f - 700.f) / 2.f;
 
-    float startY = 200.f;
+    float startY = 280.f;
 
     unsigned int characterSize = 40;
 
@@ -71,7 +68,7 @@ void TypingText::rebuildLetters()
     }
 
     float letterSpacing = characterSize * 1.f;
-    float totalWidth = targetText.size()*letterSpacing;
+    float totalWidth = targetText.size() * letterSpacing;
 
     float startX = boxX + (700.f - totalWidth) / 2.f;
 
@@ -88,15 +85,12 @@ void TypingText::rebuildLetters()
             letter.setString(std::string(1, targetText[i]));
         }
 
-
         letter.setCharacterSize(characterSize);
 
         letter.setPosition({startX + i * letterSpacing, startY});
 
-        // Default color
         sf::Color color = sf::Color::White;
 
-        // Letter correctness check
         if (i < currentInput.size())
         {
             if (currentInput[i] == targetText[i])
@@ -111,7 +105,6 @@ void TypingText::rebuildLetters()
 
         letter.setFillColor(color);
 
-        // OUTLINE
         letter.setOutlineColor(sf::Color::Black);
         letter.setOutlineThickness(3.f);
 
@@ -130,7 +123,7 @@ void TypingText::draw(sf::RenderWindow& window)
 
     backdrop.setOutlineThickness(3.f);
 
-    backdrop.setPosition({140.f, 160.f});
+    backdrop.setPosition({140.f, 240.f});
     window.draw(backdrop);
 
     for (auto& letter : letters)

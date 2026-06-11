@@ -17,6 +17,7 @@ public:
     void addScore(int points);
     int getScore() const;
     float getCombo() const;
+    
 
 private:
     int health;
