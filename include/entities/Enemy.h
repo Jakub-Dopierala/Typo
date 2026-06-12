@@ -1,6 +1,7 @@
 #pragma once
 #include "core/GameObject.h"
 #include <string>
+#include <SFML/Graphics.hpp>
 
 /*
     Abstract enemy class.

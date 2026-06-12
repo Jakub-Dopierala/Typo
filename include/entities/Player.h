@@ -2,6 +2,7 @@
 #include "core/GameObject.h"
 #include <cmath>
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 /*
     Represents the player character.
@@ -28,11 +29,18 @@ public:
         int mistakesInSentence,
         float timeLeftPercent
     );
+    void addScore(
+        int sentenceLength,
+        int mistakesInSentence);
 
 private:
     int health;
     int score;
     float comboMultiplier;
     int consecutiveCorrect;
+
     sf::RectangleShape body;
+
+    static sf::Texture texture;
+    sf::Sprite sprite;
 };

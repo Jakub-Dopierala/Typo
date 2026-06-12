@@ -7,6 +7,9 @@ Game::Game()
     : window(sf::VideoMode({1280, 720}), "Typing Game")
 {   
 
+    matchType = MatchType::Singleplayer;
+    pvpPhase = PvPPhase::None;
+
     state = GameState::MainMenu;
     auto playerObject = std::make_unique<Player>();
 
@@ -14,7 +17,10 @@ Game::Game()
 
     objects.push_back(std::move(playerObject));
 
-    spawnEnemy();
+    if (matchType == MatchType::Singleplayer)
+    {
+        spawnEnemy();
+    }
 
     currentLevel = 1;
     sentenceMistakes = 0;
@@ -105,6 +111,22 @@ void Game::processEvents()
 
                 if (keyPressed->code == sf::Keyboard::Key::Enter)
                 {
+                    if (matchType == MatchType::PvP &&
+                        pvpPhase == PvPPhase::SwitchPlayers)
+                    {
+                        resetGame();
+
+                        pvp.completedSentences = 0;
+                        typingText.setText(pvp.sentences[0]);
+                        sentenceMistakes = 0;
+
+                        pvp.timer.restart();
+
+                        pvpPhase = PvPPhase::Player2Turn;
+                        state = GameState::Playing;
+
+                        return;
+                    }
                     if (state == GameState::MainMenu)
                     {
                         switch (menuSelection)
@@ -115,6 +137,9 @@ void Game::processEvents()
                                 break;
 
                             case 1:
+                                startPvP();
+
+                                state = GameState::Playing;
                                 break;
 
                             case 2:
@@ -137,6 +162,14 @@ void Game::processEvents()
                                 break;
 
                             case 1:
+                                if(matchType == MatchType::PvP){
+                                    matchType = MatchType::Singleplayer;
+                                    pvpPhase = PvPPhase::None;
+                                    state = GameState::MainMenu;
+                                    menuSelection = 0;
+                                break;
+
+                                }
                                 updateScoreboard(player->getScore());
                                 state = GameState::MainMenu;
                                 menuSelection = 0;
@@ -146,6 +179,19 @@ void Game::processEvents()
 
                     if (state == GameState::GameOver)
                     {
+                        if (matchType == MatchType::PvP
+                            && pvpPhase == PvPPhase::Results)
+                        {
+                            state = GameState::MainMenu;
+
+                            matchType = MatchType::Singleplayer;
+
+                            pvpPhase = PvPPhase::None;
+
+                            menuSelection = 0;
+
+                            break;
+                        }
                         switch (menuSelection)
                         {
                             case 0:
@@ -230,7 +276,13 @@ void Game::update(float dt)
         return;
     }
 
-    if(!wordCompleted){timer -= dt;}
+    if(matchType == MatchType::Singleplayer)
+    {
+        if(!wordCompleted)
+        {
+            timer -= dt;
+        }
+    }
 
     for (auto& object : objects)
     {
@@ -253,27 +305,38 @@ void Game::update(float dt)
         if (completionTimer <= 0.f)
         {
 
-            float timePercent =timer/ currentEnemy->getMaxTime();
+            if(matchType == MatchType::Singleplayer)
+            {
+                float timePercent =
+                    timer / currentEnemy->getMaxTime();
 
-            player->addScore(
-            currentEnemy->getPhrase().length(),
-            sentenceMistakes,
-            timePercent);
-            // Enemy defeated
-            currentLevel++;
-            currentEnemy->onDefeat();
+                player->addScore(
+                    currentEnemy->getPhrase().length(),
+                    sentenceMistakes,
+                    timePercent);
 
-            // Remove enemy from objects
-            removeCurrentEnemy();
+                currentLevel++;
 
-            // Spawn new enemy
-            spawnEnemy();
+                currentEnemy->onDefeat();
+
+                removeCurrentEnemy();
+
+                spawnEnemy();
+            }
+            else
+            {
+                player->addScore(
+                    currentEnemy->getPhrase().length(),
+                    sentenceMistakes);
+
+                handlePvPCompletion();
+            }
 
             wordCompleted = false;
         }
     }
     // Timer reached zero
-    if (timer <= 0.f)
+    if (matchType == MatchType::Singleplayer && timer <= 0.f)
     {
         player->takeDamage(1);
 
@@ -302,15 +365,22 @@ void Game::render()
         return;
     }
 
+    
     if(state == GameState::Paused)
     {
-    
-
-        drawMenu(pauseMenuOptions);
-
-        window.display();
-
-        return;
+        if(matchType == MatchType::PvP
+        && pvpPhase == PvPPhase::SwitchPlayers)
+        {
+            drawPvPSwitchScreen();
+            window.display();
+            return;
+        }
+        else
+        {
+            drawMenu(pauseMenuOptions);
+            window.display();
+            return;
+        }
     }
 
     if(state == GameState::Scoreboard)
@@ -321,6 +391,15 @@ void Game::render()
     }
     if(state == GameState::GameOver)
     {
+        if(matchType == MatchType::PvP && pvpPhase == PvPPhase::Results)
+        {
+            drawPvPResults();
+
+            window.display();
+
+            return;
+        }
+
         drawMenu(gameOverOptions);
 
         window.display();
@@ -750,4 +829,251 @@ void Game::drawScoreboard()
         window.draw(text);
     }
 
+}
+
+void Game::startPvP()
+{
+    matchType = MatchType::PvP;
+
+    pvp = PvPData();
+
+    pvpPhase = PvPPhase::Player1Turn;
+
+    resetGame();
+
+    pvp.sentences.clear();
+
+    for (int i = 0; i < 5; i++)
+    {
+        pvp.sentences.push_back(
+            generator.generateFastSentence(i + 1));
+    }
+
+    typingText.setText(pvp.sentences[0]);
+
+    sentenceMistakes = 0;
+
+    pvp.timer.restart();
+}
+
+
+void Game::handlePvPCompletion()
+{
+    pvp.completedSentences++;
+
+    if (pvp.completedSentences < 5)
+    {
+        typingText.setText(
+            pvp.sentences[pvp.completedSentences]);
+
+        sentenceMistakes = 0;
+
+        wordCompleted = false;
+
+        return;
+    }
+
+    float elapsed =
+        pvp.timer.getElapsedTime().asSeconds();
+
+    if (pvpPhase == PvPPhase::Player1Turn)
+    {
+        pvp.player1Score = player->getScore();
+
+        pvp.player1Time = elapsed;
+
+        pvpPhase = PvPPhase::SwitchPlayers;
+
+        state = GameState::Paused;
+
+        menuSelection = 0;
+    }
+    else
+    {
+        pvp.player2Score = player->getScore();
+
+        pvp.player2Time = elapsed;
+
+        pvpPhase = PvPPhase::Results;
+
+        state = GameState::GameOver;
+    }
+}
+
+void Game::drawPvPSwitchScreen()
+{
+    sf::Text title(uiFont);
+
+    title.setString("PLAYER 1 COMPLETE!");
+
+    if (pvpPhase == PvPPhase::SwitchPlayers)
+    {
+        title.setString("PLAYER 2, GET READY!");
+    }
+
+    title.setCharacterSize(50);
+
+    title.setFillColor(sf::Color::White);
+
+    title.setOutlineColor(sf::Color::Black);
+
+    title.setOutlineThickness(3.f);
+
+    sf::FloatRect bounds = title.getLocalBounds();
+
+    title.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        250.f
+    });
+
+    window.draw(title);
+
+
+    sf::Text instruction(uiFont);
+
+    instruction.setString("PRESS ENTER TO BEGIN");
+
+    instruction.setCharacterSize(35);
+
+    instruction.setFillColor(sf::Color::Yellow);
+
+    instruction.setOutlineColor(sf::Color::Black);
+
+    instruction.setOutlineThickness(2.f);
+
+    bounds = instruction.getLocalBounds();
+
+    instruction.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        350.f
+    });
+
+    window.draw(instruction);
+}
+
+void Game::drawPvPResults()
+{
+    float slower =
+        std::max(
+            pvp.player1Time,
+            pvp.player2Time);
+
+    int adjusted1 =
+        static_cast<int>(
+            pvp.player1Score
+            * slower
+            / pvp.player1Time);
+
+    int adjusted2 =
+        static_cast<int>(
+            pvp.player2Score
+            * slower
+            / pvp.player2Time);
+
+
+    std::string winner;
+
+    if (adjusted1 > adjusted2)
+    {
+        winner = "PLAYER 1 WINS!";
+    }
+    else if (adjusted2 > adjusted1)
+    {
+        winner = "PLAYER 2 WINS!";
+    }
+    else
+    {
+        winner = "DRAW!";
+    }
+
+
+    sf::Text title(uiFont);
+
+    title.setString(winner);
+
+    title.setCharacterSize(50);
+
+    title.setFillColor(sf::Color::Yellow);
+
+    title.setOutlineColor(sf::Color::Black);
+
+    title.setOutlineThickness(3.f);
+
+    sf::FloatRect bounds = title.getLocalBounds();
+
+    title.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        80.f
+    });
+
+    window.draw(title);
+
+
+    sf::Text player1(uiFont);
+
+    player1.setString(
+        "PLAYER 1\n"
+        "Score: " + std::to_string(adjusted1)
+        + "\nTime: "
+        + std::to_string(static_cast<int>(pvp.player1Time)));
+
+    player1.setCharacterSize(30);
+
+    player1.setFillColor(sf::Color::White);
+
+    player1.setOutlineColor(sf::Color::Black);
+
+    player1.setOutlineThickness(2.f);
+
+    player1.setPosition({250.f, 220.f});
+
+    window.draw(player1);
+
+
+    sf::Text player2(uiFont);
+
+    player2.setString(
+        "PLAYER 2\n"
+        "Score: " + std::to_string(adjusted2)
+        + "\nTime: "
+        + std::to_string(static_cast<int>(pvp.player2Time)));
+
+    player2.setCharacterSize(30);
+
+    player2.setFillColor(sf::Color::White);
+
+    player2.setOutlineColor(sf::Color::Black);
+
+    player2.setOutlineThickness(2.f);
+
+    player2.setPosition({750.f, 220.f});
+
+    window.draw(player2);
+
+
+    sf::Text instruction(uiFont);
+
+    instruction.setString(
+        "PRESS ENTER TO RETURN TO MENU");
+
+    instruction.setCharacterSize(30);
+
+    instruction.setFillColor(sf::Color::Yellow);
+
+    instruction.setOutlineColor(sf::Color::Black);
+
+    instruction.setOutlineThickness(2.f);
+
+    bounds = instruction.getLocalBounds();
+
+    instruction.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        600.f
+    });
+
+    window.draw(instruction);
 }

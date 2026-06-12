@@ -1,18 +1,40 @@
 #include "entities/FastEnemy.h"
 #include <iostream>
 
+
+sf::Texture FastEnemy::texture;
+
 FastEnemy::FastEnemy(int level, std::size_t phraseLength)
     : currentLevel(level),
-      currentPhraseLength(phraseLength)
+      currentPhraseLength(phraseLength),
+      sprite(texture)   
 {
-    int length = static_cast<int>(phraseLength);
-    maxTime = 3.f+(0.25f*length)-(0.15f*level);
-    remainingTime = maxTime;
+    
+    if (texture.getSize().x == 0)
+    {
+        if (!texture.loadFromFile("assets/textures/fast_gob.png"))
+        {
+            std::cerr << "Failed to load fast_gob.png\n";
+        }
+        texture.setSmooth(false);
 
-    body.setFillColor(sf::Color::Yellow);
+        
+        sprite.setTexture(texture);
+    }
+
+    sprite.setScale({10.f, 10.f});
+    sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
+
+    maxTime = 3.f + (0.25f * phraseLength) - (0.15f * level);
+    remainingTime = maxTime;
+}
+
+void FastEnemy::draw(sf::RenderWindow& window)
+{
+    window.draw(sprite);
 }
 
 void FastEnemy::onDefeat()
 {
-    std::cout << "Fast enemy defeated!\n";
+    // TODO
 }

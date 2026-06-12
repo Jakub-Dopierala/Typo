@@ -44,6 +44,23 @@ private:
     void resetGame();
     void drawMenu(const std::vector<std::string>& options);
 
+    enum class MatchType
+    {
+        Singleplayer,
+        PvP
+    };
+    MatchType matchType;
+
+    enum class PvPPhase
+    {
+        None,
+        Player1Turn,
+        SwitchPlayers,
+        Player2Turn,
+        Results
+    };
+    PvPPhase pvpPhase;
+
     enum class GameState
     {
         MainMenu,
@@ -52,6 +69,29 @@ private:
         GameOver,
         Scoreboard
     };
+    struct PvPData
+    {
+        int currentPlayer = 1;
+
+        int completedSentences = 0;
+
+        std::vector<std::string> sentences;
+
+        int player1Score = 0;
+        int player2Score = 0;
+
+        float player1Time = 0.f;
+        float player2Time = 0.f;
+
+        sf::Clock timer;
+    };
+    void startPvP();
+
+    PvPData pvp;
+
+    void handlePvPCompletion();
+    void drawPvPSwitchScreen();
+    void drawPvPResults();
 
     GameState state;
 
