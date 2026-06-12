@@ -1,5 +1,7 @@
 #pragma once
 #include "core/GameObject.h"
+#include <cmath>
+#include <iostream>
 
 /*
     Represents the player character.
@@ -17,12 +19,20 @@ public:
     void addScore(int points);
     int getScore() const;
     float getCombo() const;
-    
+
+    void registerCorrectLetter();
+    void registerMistake();
+    void resetStreak();
+    void addScore(
+        int sentenceLength,
+        int mistakesInSentence,
+        float timeLeftPercent
+    );
 
 private:
     int health;
     int score;
     float comboMultiplier;
-
+    int consecutiveCorrect;
     sf::RectangleShape body;
 };

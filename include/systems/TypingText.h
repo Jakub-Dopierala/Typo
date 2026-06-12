@@ -17,13 +17,21 @@ public:
 
     void setText(const std::string& text);
 
-    void processInput(char c);
 
     void removeLastCharacter();
 
     void draw(sf::RenderWindow& window);
 
     bool isComplete() const;
+
+    enum class InputResult
+    {
+        Correct,
+        Incorrect,
+        Ignored
+    };
+    
+    InputResult processInput(char c);
 
 
 private:

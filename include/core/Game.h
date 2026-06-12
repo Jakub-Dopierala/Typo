@@ -1,6 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <fstream>
+#include <algorithm>
+#include <functional>
 #include <vector>
 #include <SFML/Window.hpp>
 #include "core/GameObject.h"
@@ -8,6 +11,9 @@
 #include "entities/Enemy.h"
 #include "systems/TypingText.h"
 #include "systems/SentenceGenerator.h"
+#include <cmath>
+#include <sstream>
+#include <iomanip>
 
 /*
     Main game class.
@@ -31,6 +37,8 @@ private:
     bool wordCompleted = false;
     float completionTimer = 0.f;
 
+    int sentenceMistakes;
+
     int currentLevel;
 
     void resetGame();
@@ -41,7 +49,8 @@ private:
         MainMenu,
         Playing,
         Paused,
-        GameOver
+        GameOver,
+        Scoreboard
     };
 
     GameState state;
@@ -51,6 +60,12 @@ private:
     std::vector<std::string> mainMenuOptions;
     std::vector<std::string> pauseMenuOptions;
     std::vector<std::string> gameOverOptions;
+
+    void updateScoreboard(int newScore);
+    void loadScoreboard();
+    std::vector<int> scoreboard;
+
+    void drawScoreboard();
 
 
 private:

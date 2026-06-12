@@ -17,7 +17,7 @@ Game::Game()
     spawnEnemy();
 
     currentLevel = 1;
-
+    sentenceMistakes = 0;
 
     if (!uiFont.openFromFile("assets/fonts/pixel.ttf"))
     {
@@ -83,6 +83,16 @@ void Game::processEvents()
                 {
                     state = GameState::Playing;
                 }
+                else if(state == GameState::Scoreboard)
+                {
+                    state = GameState::MainMenu;
+                    menuSelection = 0;
+                }
+                else if(state == GameState::MainMenu)
+                {
+                    window.close();
+                    break;
+                }
             }
 
             if (state != GameState::Playing)
@@ -108,6 +118,8 @@ void Game::processEvents()
                                 break;
 
                             case 2:
+                                loadScoreboard();
+                                state = GameState::Scoreboard;
                                 break;
 
                             case 3:
@@ -125,6 +137,7 @@ void Game::processEvents()
                                 break;
 
                             case 1:
+                                updateScoreboard(player->getScore());
                                 state = GameState::MainMenu;
                                 menuSelection = 0;
                                 break;
@@ -187,11 +200,22 @@ void Game::processEvents()
 
                 if (typed == '\b')
                 {
+                    player->resetStreak();
                     typingText.removeLastCharacter();
                 }
                 else if (typed >= 32 && typed <= 126)
                 {
-                    typingText.processInput(typed);
+                    TypingText::InputResult result = typingText.processInput(typed);
+                    if (result == TypingText::InputResult::Correct)
+                    {
+                        player->registerCorrectLetter();
+                    }
+                    else if (result == TypingText::InputResult::Incorrect)
+                    {
+                        player->registerMistake();
+
+                        sentenceMistakes++;
+                    }
                 }
             }
         }
@@ -228,6 +252,13 @@ void Game::update(float dt)
 
         if (completionTimer <= 0.f)
         {
+
+            float timePercent =timer/ currentEnemy->getMaxTime();
+
+            player->addScore(
+            currentEnemy->getPhrase().length(),
+            sentenceMistakes,
+            timePercent);
             // Enemy defeated
             currentLevel++;
             currentEnemy->onDefeat();
@@ -251,6 +282,7 @@ void Game::update(float dt)
 
         if (player->getHealth() <= 0)
         {
+            updateScoreboard(player->getScore());
             state = GameState::GameOver;
             menuSelection = 0;
         }
@@ -281,6 +313,12 @@ void Game::render()
         return;
     }
 
+    if(state == GameState::Scoreboard)
+    {
+        drawScoreboard();
+        window.display();
+        return;
+    }
     if(state == GameState::GameOver)
     {
         drawMenu(gameOverOptions);
@@ -435,7 +473,7 @@ void Game::render()
 
     sf::Text scoreText(uiFont);
 
-    scoreText.setString("SCORE 0");
+    scoreText.setString("SCORE " + std::to_string(player->getScore()));
 
     scoreText.setCharacterSize(24);
 
@@ -467,7 +505,11 @@ void Game::render()
 
     sf::Text comboText(uiFont);
 
-    comboText.setString("COMBO x1");
+
+    std::ostringstream ss;
+    ss << player->getCombo();
+    comboText.setString("COMBO " + ss.str() +"x");
+
 
     comboText.setCharacterSize(24);
 
@@ -610,4 +652,102 @@ void Game::drawMenu(const std::vector<std::string>& options)
 
         window.draw(text);
     }
+}
+
+void Game::updateScoreboard(int newScore)
+{
+    std::ifstream input("assets/data/scoreboard.txt");
+
+    std::vector<int> scores;
+
+    int score;
+
+    while (input >> score)
+    {
+        scores.push_back(score);
+    }
+
+    input.close();
+
+    scores.push_back(newScore);
+
+    std::sort(
+        scores.begin(),
+        scores.end(),
+        std::greater<int>());
+
+    if (scores.size() > 10)
+    {
+        scores.resize(10);
+    }
+
+    std::ofstream output("assets/data/scoreboard.txt");
+
+    for (int value : scores)
+    {
+        output << value << '\n';
+    }
+}
+
+void Game::loadScoreboard()
+{
+    scoreboard.clear();
+
+    std::ifstream input(
+        "assets/data/scoreboard.txt");
+
+    int score;
+
+    while (input >> score)
+    {
+        scoreboard.push_back(score);
+    }
+}
+
+void Game::drawScoreboard()
+{
+    sf::Text title(uiFont);
+
+    title.setString("SCOREBOARD");
+
+    title.setCharacterSize(50);
+
+    title.setFillColor(sf::Color::Yellow);
+
+    title.setOutlineColor(sf::Color::Black);
+
+    title.setOutlineThickness(3.f);
+
+    title.setPosition({400.f, 50.f});
+
+    window.draw(title);
+
+    float startY = 120.f;
+
+    for (size_t i = 0; i < scoreboard.size(); i++)
+    {
+        sf::Text text(uiFont);
+
+        text.setString(
+            std::to_string(i + 1)
+            + ". "
+            + std::to_string(scoreboard[i]));
+
+        text.setCharacterSize(35);
+
+        text.setFillColor(sf::Color::White);
+
+        text.setOutlineColor(sf::Color::Black);
+
+        text.setOutlineThickness(2.f);
+
+        text.setPosition(
+        {
+            500.f,
+            startY + static_cast<float>(i) * 50.f
+        });
+
+        window.draw(text);
+    }
+
 }

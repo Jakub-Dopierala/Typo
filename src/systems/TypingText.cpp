@@ -19,17 +19,23 @@ void TypingText::setText(const std::string& text)
     rebuildLetters();
 }
 
-void TypingText::processInput(char c)
+TypingText::InputResult TypingText::processInput(char c)
 {
-    // Prevent typing beyond sentence length
+    
     if (currentInput.size() >= targetText.size())
     {
-        return;
+        return InputResult::Ignored;
     }
 
+    if (targetText[currentInput.size()] == c)
+    {
+        currentInput += c;
+        rebuildLetters();
+        return InputResult::Correct;
+    }
     currentInput += c;
-
     rebuildLetters();
+    return InputResult::Incorrect;
 }
 
 void TypingText::removeLastCharacter()

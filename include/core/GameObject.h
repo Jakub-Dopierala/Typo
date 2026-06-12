@@ -3,7 +3,6 @@
 
 /*
     Abstract base class for every object that exists in the game world.
-    All derived objects must implement update() and draw().
 */
 
 class GameObject {
