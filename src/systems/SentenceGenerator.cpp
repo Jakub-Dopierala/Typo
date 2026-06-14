@@ -2,20 +2,22 @@
 
 #include <fstream>
 #include <iostream>
-#include <sstream>
+#include <algorithm>
 
 SentenceGenerator::SentenceGenerator()
 {
-    loadFastWords();
+    loadWords("assets/phrases/fast_enemy.txt", fastWords);
+    loadWords("assets/phrases/tank_enemy.txt", tankWords);
+    loadTrickSentences();
 }
 
-void SentenceGenerator::loadFastWords()
+void SentenceGenerator::loadWords(const std::string& filePath, WordSet& wordSet)
 {
-    std::ifstream file("assets/phrases/fast_enemy.txt");
+    std::ifstream file(filePath);
 
     if (!file.is_open())
     {
-        std::cout << "ERROR: Could not open fast_enemy.txt\n";
+        std::cout << "ERROR: Could not open " << filePath << "\n";
         return;
     }
 
@@ -59,15 +61,15 @@ void SentenceGenerator::loadFastWords()
         switch (currentSection)
         {
             case VERBS:
-                fastVerbs.push_back(line);
+                wordSet.verbs.push_back(line);
                 break;
 
             case ADJECTIVES:
-                fastAdjectives.push_back(line);
+                wordSet.adjectives.push_back(line);
                 break;
 
             case NOUNS:
-                fastNouns.push_back(line);
+                wordSet.nouns.push_back(line);
                 break;
 
             default:
@@ -76,29 +78,77 @@ void SentenceGenerator::loadFastWords()
     }
 }
 
-std::string SentenceGenerator::generateFastSentence(int level)
+std::string SentenceGenerator::generateSentence(EnemyType type, int level)
 {
-    // Limit difficulty growth
-    int maxIndex = std::min(level, (int)fastVerbs.size() - 1);
+    const WordSet& words =
+        (type == EnemyType::Fast) ? fastWords : tankWords;
 
-    int verbIndex = rand() % (maxIndex + 1);
-    int nounIndex = rand() % (maxIndex + 1);
+    if (words.verbs.empty() ||
+        words.adjectives.empty() ||
+        words.nouns.empty())
+    {
+        return "ERROR";
+    }
+
+    int verbMaxIndex = std::min(level, static_cast<int>(words.verbs.size()) - 1);
+    int nounMaxIndex = std::min(level, static_cast<int>(words.nouns.size()) - 1);
+
+    int verbIndex = rand() % (verbMaxIndex + 1);
+    int nounIndex = rand() % (nounMaxIndex + 1);
 
     std::string sentence;
 
-    sentence += fastVerbs[verbIndex];
+    sentence += words.verbs[verbIndex];
     sentence += " ";
 
-    // Add adjective later in progression
     if (level >= 3)
     {
-        int adjectiveIndex = rand() % (maxIndex + 1);
+        int adjectiveMax =
+            std::min(level, static_cast<int>(words.adjectives.size()) - 1);
 
-        sentence += fastAdjectives[adjectiveIndex];
+        int adjectiveIndex = rand() % (adjectiveMax + 1);
+
+        sentence += words.adjectives[adjectiveIndex];
         sentence += " ";
     }
 
-    sentence += fastNouns[nounIndex];
+    sentence += words.nouns[nounIndex];
 
     return sentence;
+}
+
+void SentenceGenerator::loadTrickSentences()
+{
+    std::ifstream file("assets/phrases/trick_enemy.txt");
+
+    if (!file.is_open())
+    {
+        std::cout << "ERROR: Could not open trick_enemy.txt\n";
+        return;
+    }
+
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (!line.empty())
+        {
+            trickSentences.push_back(line);
+        }
+    }
+}
+
+std::string SentenceGenerator::generateTrickSentence(int level)
+{
+    if (trickSentences.empty())
+    {
+        return "ERROR";
+    }
+
+    int maxIndex =
+        std::min(level, static_cast<int>(trickSentences.size()) - 1);
+
+    int sentenceIndex = rand() % (maxIndex + 1);
+
+    return trickSentences[sentenceIndex];
 }

@@ -1,20 +1,20 @@
-#include "entities/FastEnemy.h"
+#include "entities/TrickEnemy.h"
 #include <iostream>
 
 
-sf::Texture FastEnemy::texture;
+sf::Texture TrickEnemy::texture;
 
-FastEnemy::FastEnemy(int level, std::size_t phraseLength)
+TrickEnemy::TrickEnemy(int level, std::size_t phraseLength)
     : currentLevel(level),
       currentPhraseLength(phraseLength),
       sprite(texture)   
 {
-    ENtype="FAST";
+    ENtype="TRICK";
     if (texture.getSize().x == 0)
     {
-        if (!texture.loadFromFile("assets/textures/fast_gob.png"))
+        if (!texture.loadFromFile("assets/textures/trick_gob.png"))
         {
-            std::cerr << "Failed to load fast_gob.png\n";
+            std::cerr << "Failed to load trick_gob.png\n";
         }
         texture.setSmooth(false);
     }
@@ -24,16 +24,16 @@ FastEnemy::FastEnemy(int level, std::size_t phraseLength)
     sprite.setScale({10.f, 10.f});
     sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
 
-    maxTime = 3.f + (0.2f * phraseLength) - (0.25f * level);
+    maxTime = 3.f + (0.35f * phraseLength) - (0.15f * level);
     remainingTime = maxTime;
 }
 
-void FastEnemy::draw(sf::RenderWindow& window)
+void TrickEnemy::draw(sf::RenderWindow& window)
 {
     window.draw(sprite);
 }
 
-void FastEnemy::onDefeat()
+void TrickEnemy::onDefeat()
 {
     // TODO
 }

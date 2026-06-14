@@ -1,5 +1,7 @@
 #include "core/Game.h"
 #include "entities/FastEnemy.h"
+#include "entities/TankEnemy.h"
+#include "entities/TrickEnemy.h"
 #include <algorithm>
 #include <iostream>
 
@@ -17,10 +19,6 @@ Game::Game()
 
     objects.push_back(std::move(playerObject));
 
-    if (matchType == MatchType::Singleplayer)
-    {
-        spawnEnemy();
-    }
 
     currentLevel = 1;
     sentenceMistakes = 0;
@@ -51,6 +49,11 @@ Game::Game()
         "RESTART",
         "MAIN MENU"
     };
+
+    if (matchType == MatchType::Singleplayer)
+    {
+        spawnEnemy();
+    }
 }
 
 void Game::run()
@@ -326,7 +329,7 @@ void Game::update(float dt)
             else
             {
                 player->addScore(
-                    currentEnemy->getPhrase().length(),
+                    pvp.sentences[pvp.completedSentences].length(),
                     sentenceMistakes);
 
                 handlePvPCompletion();
@@ -415,126 +418,7 @@ void Game::render()
     typingText.draw(window);
     
 
-
-    // HEART BACKDROP
-
-    sf::RectangleShape heartBackdrop;
-
-    heartBackdrop.setSize({240.f, 60.f});
-
-    heartBackdrop.setPosition({200.f, 600.f});
-
-    heartBackdrop.setFillColor(sf::Color(50, 50, 50));
-
-    heartBackdrop.setOutlineColor(sf::Color::Black);
-
-    heartBackdrop.setOutlineThickness(4.f);
-
-    window.draw(heartBackdrop);
-
-    int hp = player->getHealth();
-
-    float availableWidth = 200.f;
-
-    float heartSize = availableWidth / hp;
-
-    if (heartSize > 40.f)
-    {
-        heartSize = 40.f;
-    }
-
-    float totalWidth = hp * heartSize;
-
-    float startX = 200.f + (240.f - totalWidth) / 2.f;
-
-    for (int i = 0; i < hp; i++)
-    {
-        sf::RectangleShape heart;
-
-        heart.setSize({heartSize - 6.f, heartSize - 6.f});
-
-        heart.setFillColor(sf::Color::Red);
-
-        heart.setPosition({
-            startX + i * heartSize,
-            600.f + (60.f - heartSize) / 2.f
-        });
-
-        window.draw(heart);
-    }
-
-
-    // ENEMY TYPE BOX (now same size + symmetric with hearts)
-
-    sf::RectangleShape enemyBackdrop;
-
-    enemyBackdrop.setSize({240.f, 60.f});
-
-    enemyBackdrop.setPosition({840.f, 600.f});
-
-    enemyBackdrop.setFillColor(sf::Color(50, 50, 50));
-
-    enemyBackdrop.setOutlineColor(sf::Color::Black);
-
-    enemyBackdrop.setOutlineThickness(4.f);
-
-    window.draw(enemyBackdrop);
-
-    sf::Text enemyText(uiFont);
-
-    enemyText.setString("FAST");
-
-    enemyText.setCharacterSize(24);
-
-    enemyText.setFillColor(sf::Color::White);
-
-    enemyText.setOutlineColor(sf::Color::Black);
-
-    enemyText.setOutlineThickness(2.f);
-
-    sf::FloatRect bounds = enemyText.getLocalBounds();
-
-    enemyText.setPosition({
-        840.f + (240.f - bounds.size.x) / 2.f,
-        600.f + (60.f - bounds.size.y) / 2.f - bounds.position.y
-    });
-
-    window.draw(enemyText);
-
-
-    // LEVEL
-
-    sf::RectangleShape levelBox;
-
-    levelBox.setSize({180.f, 60.f});
-
-    levelBox.setPosition({40.f, 40.f});
-
-    levelBox.setFillColor(sf::Color(50, 50, 50));
-
-    levelBox.setOutlineColor(sf::Color::Black);
-
-    levelBox.setOutlineThickness(4.f);
-
-    window.draw(levelBox);
-
-    sf::Text levelText(uiFont);
-
-    levelText.setString("LVL " + std::to_string(currentLevel));
-
-    levelText.setCharacterSize(24);
-
-    sf::FloatRect levelBounds = levelText.getLocalBounds();
-
-    levelText.setPosition({
-        40.f + (180.f - levelBounds.size.x) / 2.f,
-        40.f + (60.f - levelBounds.size.y) / 2.f - levelBounds.position.y
-    });
-
-    window.draw(levelText);
-
-
-    // SCORE (wider + better centering)
+    // SCORE 
 
     sf::RectangleShape scoreBox;
 
@@ -566,7 +450,7 @@ void Game::render()
     window.draw(scoreText);
 
 
-    // COMBO (wider + better centering)
+    // COMBO 
 
     sf::RectangleShape comboBox;
 
@@ -602,66 +486,234 @@ void Game::render()
     window.draw(comboText);
 
 
-    // TIMER
+    if(matchType == MatchType::Singleplayer){
 
-    sf::RectangleShape timerBackdrop;
+        // HEART BACKDROP
 
-    timerBackdrop.setSize({420.f, 40.f});
+        sf::RectangleShape heartBackdrop;
 
-    timerBackdrop.setPosition({430.f, 120.f}); // moved down to align better
+        heartBackdrop.setSize({240.f, 60.f});
 
-    timerBackdrop.setFillColor(sf::Color(50, 50, 50));
+        heartBackdrop.setPosition({200.f, 600.f});
 
-    timerBackdrop.setOutlineColor(sf::Color::Black);
+        heartBackdrop.setFillColor(sf::Color(50, 50, 50));
 
-    timerBackdrop.setOutlineThickness(4.f);
+        heartBackdrop.setOutlineColor(sf::Color::Black);
 
-    window.draw(timerBackdrop);
+        heartBackdrop.setOutlineThickness(4.f);
+
+        window.draw(heartBackdrop);
+
+        int hp = player->getHealth();
+
+        float availableWidth = 200.f;
+
+        float heartSize = availableWidth / hp;
+
+        if (heartSize > 40.f)
+        {
+            heartSize = 40.f;
+        }
+
+        float totalWidth = hp * heartSize;
+
+        float startX = 200.f + (240.f - totalWidth) / 2.f;
+
+        for (int i = 0; i < hp; i++)
+        {
+            sf::RectangleShape heart;
+
+            heart.setSize({heartSize - 6.f, heartSize - 6.f});
+
+            heart.setFillColor(sf::Color::Red);
+
+            heart.setPosition({
+                startX + i * heartSize,
+                600.f + (60.f - heartSize) / 2.f
+            });
+
+            window.draw(heart);
+        }
 
 
-    // TIMER BAR (clamped to backdrop)
+        // ENEMY TYPE BOX 
 
-    sf::RectangleShape timerBar;
+        sf::RectangleShape enemyBackdrop;
 
-    float maxBarWidth = 420.f;
+        enemyBackdrop.setSize({240.f, 60.f});
 
-    float barWidth = timer * 40.f;  // restored original scaling feel
+        enemyBackdrop.setPosition({840.f, 600.f});
 
-    if (barWidth > maxBarWidth) barWidth = maxBarWidth;
-    if (barWidth < 0.f) barWidth = 0.f;
+        enemyBackdrop.setFillColor(sf::Color(50, 50, 50));
 
-    timerBar.setSize({barWidth, 30.f});
+        enemyBackdrop.setOutlineColor(sf::Color::Black);
 
-    if (barWidth > maxBarWidth) barWidth = maxBarWidth;
-    if (barWidth < 0.f) barWidth = 0.f;
+        enemyBackdrop.setOutlineThickness(4.f);
 
-    timerBar.setSize({barWidth, 30.f});
+        window.draw(enemyBackdrop);
 
-    timerBar.setPosition({430.f, 125.f});
+        sf::Text enemyText(uiFont);
 
-    timerBar.setFillColor(sf::Color::Red);
+        enemyText.setString(currentEnemy->getType());
 
-    window.draw(timerBar);
+        enemyText.setCharacterSize(24);
+
+        enemyText.setFillColor(sf::Color::White);
+
+        enemyText.setOutlineColor(sf::Color::Black);
+
+        enemyText.setOutlineThickness(2.f);
+
+        sf::FloatRect bounds = enemyText.getLocalBounds();
+
+        enemyText.setPosition({
+            840.f + (240.f - bounds.size.x) / 2.f,
+            600.f + (60.f - bounds.size.y) / 2.f - bounds.position.y
+        });
+
+        window.draw(enemyText);
+
+
+        // LEVEL
+
+        sf::RectangleShape levelBox;
+
+        levelBox.setSize({180.f, 60.f});
+
+        levelBox.setPosition({40.f, 40.f});
+
+        levelBox.setFillColor(sf::Color(50, 50, 50));
+
+        levelBox.setOutlineColor(sf::Color::Black);
+
+        levelBox.setOutlineThickness(4.f);
+
+        window.draw(levelBox);
+
+        sf::Text levelText(uiFont);
+
+        levelText.setString("LVL " + std::to_string(currentLevel));
+
+        levelText.setCharacterSize(24);
+
+        sf::FloatRect levelBounds = levelText.getLocalBounds();
+
+        levelText.setPosition({
+            40.f + (180.f - levelBounds.size.x) / 2.f,
+            40.f + (60.f - levelBounds.size.y) / 2.f - levelBounds.position.y
+        });
+
+        window.draw(levelText);
+
+
+
+
+        // TIMER
+
+        sf::RectangleShape timerBackdrop;
+
+        timerBackdrop.setSize({420.f, 40.f});
+
+        timerBackdrop.setPosition({430.f, 120.f}); // moved down to align better
+
+        timerBackdrop.setFillColor(sf::Color(50, 50, 50));
+
+        timerBackdrop.setOutlineColor(sf::Color::Black);
+
+        timerBackdrop.setOutlineThickness(4.f);
+
+        window.draw(timerBackdrop);
+
+
+        // TIMER BAR (clamped to backdrop)
+
+        sf::RectangleShape timerBar;
+
+        float maxBarWidth = 420.f;
+
+        float barWidth = timer * 40.f;  // restored original scaling feel
+
+        if (barWidth > maxBarWidth) barWidth = maxBarWidth;
+        if (barWidth < 0.f) barWidth = 0.f;
+
+        timerBar.setSize({barWidth, 30.f});
+
+        if (barWidth > maxBarWidth) barWidth = maxBarWidth;
+        if (barWidth < 0.f) barWidth = 0.f;
+
+        timerBar.setSize({barWidth, 30.f});
+
+        timerBar.setPosition({430.f, 125.f});
+
+        timerBar.setFillColor(sf::Color::Red);
+
+        window.draw(timerBar);
+
+        
+    }
+    if (matchType == MatchType::PvP)
+    {
+        static sf::Texture wiz2Texture("assets/textures/wiz2.png");
+
+        static sf::Sprite wiz2Sprite(wiz2Texture);
+
+        wiz2Sprite.setScale({10.f, 10.f});
+        wiz2Sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
+
+        window.draw(wiz2Sprite);
+    }
 
     window.display();
 }
 
 void Game::spawnEnemy()
 {
-    std::string phrase = generator.generateFastSentence(currentLevel);
-    auto enemy = std::make_unique<FastEnemy>(
-        currentLevel,
-        phrase.length()
-    );
+    constexpr int FAST_CHANCE  = 40;
+    constexpr int TANK_CHANCE  = 40;
+    constexpr int TRICK_CHANCE = 20;
+    int roll = rand() % 100;
+
+    std::string phrase;
+    std::unique_ptr<Enemy> enemy;
+
+    if (roll < FAST_CHANCE) 
+    {
+        phrase = generator.generateSentence(
+            EnemyType::Fast,
+            currentLevel);
+
+        enemy = std::make_unique<FastEnemy>(
+            currentLevel,
+            phrase.length());
+    }
+    else if (roll < FAST_CHANCE + TANK_CHANCE) 
+    {
+        phrase = generator.generateSentence(
+            EnemyType::Tank,
+            currentLevel);
+
+        enemy = std::make_unique<TankEnemy>(
+            currentLevel,
+            phrase.length());
+    }
+    else 
+    {
+        phrase = generator.generateTrickSentence(
+            currentLevel);
+
+        enemy = std::make_unique<TrickEnemy>(
+            currentLevel,
+            phrase.length());
+    }
 
     currentEnemy = enemy.get();
 
-    
     currentEnemy->setPhrase(phrase);
 
     typingText.setText(phrase);
 
     timer = currentEnemy->getMaxTime();
+
     objects.push_back(std::move(enemy));
 }
 
@@ -678,6 +730,7 @@ void Game::removeCurrentEnemy()
         ),
         objects.end()
     );
+    
 }
 
 void Game::resetGame()
@@ -695,7 +748,10 @@ void Game::resetGame()
 
     wordCompleted = false;
 
-    spawnEnemy();
+    if (matchType == MatchType::Singleplayer)
+    {
+        spawnEnemy();
+    }
 }
 
 void Game::drawMenu(const std::vector<std::string>& options)
@@ -846,7 +902,7 @@ void Game::startPvP()
     for (int i = 0; i < 5; i++)
     {
         pvp.sentences.push_back(
-            generator.generateFastSentence(i + 1));
+            generator.generateSentence(EnemyType::Fast,i + 1));
     }
 
     typingText.setText(pvp.sentences[0]);
@@ -955,6 +1011,7 @@ void Game::drawPvPSwitchScreen()
 
 void Game::drawPvPResults()
 {
+
     float slower =
         std::max(
             pvp.player1Time,

@@ -8,18 +8,33 @@
     for different enemy types.
 */
 
+enum class EnemyType
+{
+    Fast,
+    Tank
+};
+
+struct WordSet
+{
+    std::vector<std::string> verbs;
+    std::vector<std::string> adjectives;
+    std::vector<std::string> nouns;
+};
+
 class SentenceGenerator
 {
 public:
     SentenceGenerator();
 
-    std::string generateFastSentence(int level);
+    std::string generateSentence(EnemyType type, int level);
+    std::string generateTrickSentence(int level);
 
 private:
-    void loadFastWords();
+    void loadWords(const std::string& filePath, WordSet& wordSet);
+    void loadTrickSentences();
 
-private:
-    std::vector<std::string> fastVerbs;
-    std::vector<std::string> fastAdjectives;
-    std::vector<std::string> fastNouns;
+    std::vector<std::string> trickSentences;
+
+    WordSet fastWords;
+    WordSet tankWords;
 };

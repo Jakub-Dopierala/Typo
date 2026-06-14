@@ -1,15 +1,15 @@
-#include "entities/FastEnemy.h"
+#include "entities/TankEnemy.h"
 #include <iostream>
 
 
-sf::Texture FastEnemy::texture;
+sf::Texture TankEnemy::texture;
 
-FastEnemy::FastEnemy(int level, std::size_t phraseLength)
+TankEnemy::TankEnemy(int level, std::size_t phraseLength)
     : currentLevel(level),
       currentPhraseLength(phraseLength),
       sprite(texture)   
 {
-    ENtype="FAST";
+    ENtype="TANK";
     if (texture.getSize().x == 0)
     {
         if (!texture.loadFromFile("assets/textures/fast_gob.png"))
@@ -17,6 +17,7 @@ FastEnemy::FastEnemy(int level, std::size_t phraseLength)
             std::cerr << "Failed to load fast_gob.png\n";
         }
         texture.setSmooth(false);
+
     }
     sprite = sf::Sprite(texture);  
     sprite.setTexture(texture);
@@ -24,16 +25,16 @@ FastEnemy::FastEnemy(int level, std::size_t phraseLength)
     sprite.setScale({10.f, 10.f});
     sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
 
-    maxTime = 3.f + (0.2f * phraseLength) - (0.25f * level);
+    maxTime = 3.f + (0.25f * phraseLength) - (0.25f * level);
     remainingTime = maxTime;
 }
 
-void FastEnemy::draw(sf::RenderWindow& window)
+void TankEnemy::draw(sf::RenderWindow& window)
 {
     window.draw(sprite);
 }
 
-void FastEnemy::onDefeat()
+void TankEnemy::onDefeat()
 {
     // TODO
 }

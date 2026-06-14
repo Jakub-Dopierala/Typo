@@ -13,14 +13,16 @@ public:
     Enemy();
 
     virtual void update(float dt) override;
-    virtual void draw(sf::RenderWindow& window) override;
+    //virtual void draw(sf::RenderWindow& window) override;
     const std::string& getPhrase() const;
+    const std::string& getType() const;
     void setPhrase(const std::string& newPhrase);
     virtual void onDefeat() = 0;
     float getMaxTime() const;
 
 protected:
     std::string phrase;
+    std::string ENtype;
 
     float maxTime;
     float remainingTime;

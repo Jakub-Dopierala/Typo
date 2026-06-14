@@ -108,7 +108,8 @@ private:
     void drawScoreboard();
 
 
-private:
+
+
     sf::RenderWindow window;
 
     sf::Clock clock;
@@ -122,4 +123,6 @@ private:
     TypingText typingText;
 
     SentenceGenerator generator;
+
+    
 };

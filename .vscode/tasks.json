@@ -16,6 +16,8 @@
 
                 "src/entities/Enemy.cpp",
                 "src/entities/FastEnemy.cpp",
+                "src/entities/TankEnemy.cpp",
+                "src/entities/TrickEnemy.cpp",
                 "src/entities/Player.cpp",
 
                 "src/systems/SentenceGenerator.cpp",
