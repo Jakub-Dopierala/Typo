@@ -31,7 +31,6 @@ Player::Player()
 
 void Player::update(float dt)
 {
-    // Player logic will go here later
 }
 
 void Player::draw(sf::RenderWindow& window)

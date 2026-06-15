@@ -92,6 +92,7 @@ private:
     void handlePvPCompletion();
     void drawPvPSwitchScreen();
     void drawPvPResults();
+    void drawSingleplayerResults();
 
     GameState state;
 

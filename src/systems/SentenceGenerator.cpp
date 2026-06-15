@@ -101,7 +101,7 @@ std::string SentenceGenerator::generateSentence(EnemyType type, int level)
     sentence += words.verbs[verbIndex];
     sentence += " ";
 
-    if (level >= 3)
+    if (level >= 8)
     {
         int adjectiveMax =
             std::min(level, static_cast<int>(words.adjectives.size()) - 1);

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
+//initalize game, load resources
 Game::Game()
     : window(sf::VideoMode({1280, 720}), "Typing Game")
 {   
@@ -56,6 +57,7 @@ Game::Game()
     }
 }
 
+//keep it looped
 void Game::run()
 {
     while (window.isOpen())
@@ -68,6 +70,7 @@ void Game::run()
     }
 }
 
+// handle keyboard, text input and window events
 void Game::processEvents()
 {
     while (const std::optional event = window.pollEvent())
@@ -78,9 +81,10 @@ void Game::processEvents()
             window.close();
         }
 
-        // Escape key PAUSES the game
+        
         if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
         {
+            // Escape key pauses or quits the game
             if (keyPressed->code == sf::Keyboard::Key::Escape)
             {
                 if (state == GameState::Playing)
@@ -105,7 +109,8 @@ void Game::processEvents()
             }
 
             if (state != GameState::Playing)
-            {
+            {   
+                //navigating menus, skipping parts
                 if (keyPressed->code == sf::Keyboard::Key::Up)
                     menuSelection--;
 
@@ -195,17 +200,11 @@ void Game::processEvents()
 
                             break;
                         }
-                        switch (menuSelection)
+                        else
                         {
-                            case 0:
-                                resetGame();
-                                state = GameState::Playing;
-                                break;
-
-                            case 1:
-                                state = GameState::MainMenu;
-                                menuSelection = 0;
-                                break;
+                            state = GameState::MainMenu;
+                            menuSelection = 0;
+                            return;
                         }
                     }
                 }
@@ -241,6 +240,7 @@ void Game::processEvents()
             }
         }
 
+        //text input for sentences
         if (const auto* textEntered = event->getIf<sf::Event::TextEntered>())   
         {
             if (!wordCompleted)
@@ -271,6 +271,7 @@ void Game::processEvents()
     }
 }
 
+// update game logic each frame
 void Game::update(float dt)
 {
 
@@ -317,8 +318,12 @@ void Game::update(float dt)
                     currentEnemy->getPhrase().length(),
                     sentenceMistakes,
                     timePercent);
+                
 
                 currentLevel++;
+                if (currentLevel%5==0 && player->getHealth()<=5){
+                    player->takeDamage(-1);
+                }
 
                 currentEnemy->onDefeat();
 
@@ -355,6 +360,7 @@ void Game::update(float dt)
     }
 }
 
+//draw relevant ui and stuff
 void Game::render()
 {
     window.clear(sf::Color(180, 180, 180));
@@ -402,7 +408,12 @@ void Game::render()
 
             return;
         }
+        else{
+            drawSingleplayerResults();
 
+            window.display();
+            return;
+        }
         drawMenu(gameOverOptions);
 
         window.display();
@@ -554,7 +565,19 @@ void Game::render()
 
         sf::Text enemyText(uiFont);
 
-        enemyText.setString(currentEnemy->getType());
+        if (dynamic_cast<FastEnemy*>(currentEnemy))
+        {
+            enemyText.setString("FAST");
+        }
+        else if (dynamic_cast<TankEnemy*>(currentEnemy))
+        {
+            enemyText.setString("TANK");
+        }
+        else if (dynamic_cast<TrickEnemy*>(currentEnemy))
+        {
+            enemyText.setString("TRICK");
+        }
+        //enemyText.setString(currentEnemy->getType());
 
         enemyText.setCharacterSize(24);
 
@@ -614,7 +637,7 @@ void Game::render()
 
         timerBackdrop.setSize({420.f, 40.f});
 
-        timerBackdrop.setPosition({430.f, 120.f}); // moved down to align better
+        timerBackdrop.setPosition({430.f, 120.f}); 
 
         timerBackdrop.setFillColor(sf::Color(50, 50, 50));
 
@@ -631,7 +654,7 @@ void Game::render()
 
         float maxBarWidth = 420.f;
 
-        float barWidth = timer * 40.f;  // restored original scaling feel
+        float barWidth = timer * 40.f;  
 
         if (barWidth > maxBarWidth) barWidth = maxBarWidth;
         if (barWidth < 0.f) barWidth = 0.f;
@@ -651,6 +674,8 @@ void Game::render()
 
         
     }
+
+    //load different opponent sprite for pvp
     if (matchType == MatchType::PvP)
     {
         static sf::Texture wiz2Texture("assets/textures/wiz2.png");
@@ -666,6 +691,7 @@ void Game::render()
     window.display();
 }
 
+//create and prep new enemy
 void Game::spawnEnemy()
 {
     constexpr int FAST_CHANCE  = 40;
@@ -717,6 +743,7 @@ void Game::spawnEnemy()
     objects.push_back(std::move(enemy));
 }
 
+//logical
 void Game::removeCurrentEnemy()
 {
     objects.erase(
@@ -733,6 +760,7 @@ void Game::removeCurrentEnemy()
     
 }
 
+//restart the game, clear existing objects
 void Game::resetGame()
 {
     objects.clear();
@@ -754,6 +782,7 @@ void Game::resetGame()
     }
 }
 
+//interactable menu drawing
 void Game::drawMenu(const std::vector<std::string>& options)
 {
     float startY = 250.f;
@@ -789,6 +818,8 @@ void Game::drawMenu(const std::vector<std::string>& options)
     }
 }
 
+
+//update scoreboard file with new score
 void Game::updateScoreboard(int newScore)
 {
     std::ifstream input("assets/data/scoreboard.txt");
@@ -824,6 +855,7 @@ void Game::updateScoreboard(int newScore)
     }
 }
 
+//load scoreboard for drawing
 void Game::loadScoreboard()
 {
     scoreboard.clear();
@@ -887,6 +919,7 @@ void Game::drawScoreboard()
 
 }
 
+//starp pvp, generate sentences for it
 void Game::startPvP()
 {
     matchType = MatchType::PvP;
@@ -901,8 +934,14 @@ void Game::startPvP()
 
     for (int i = 0; i < 5; i++)
     {
-        pvp.sentences.push_back(
-            generator.generateSentence(EnemyType::Fast,i + 1));
+        if(i<3){
+            pvp.sentences.push_back(
+                generator.generateSentence(EnemyType::Fast,50));
+            }
+        else{
+            pvp.sentences.push_back(
+                generator.generateSentence(EnemyType::Tank,50));
+        }
     }
 
     typingText.setText(pvp.sentences[0]);
@@ -912,7 +951,7 @@ void Game::startPvP()
     pvp.timer.restart();
 }
 
-
+//whenever pvp sentence is completed, continue, check if player done
 void Game::handlePvPCompletion()
 {
     pvp.completedSentences++;
@@ -956,6 +995,7 @@ void Game::handlePvPCompletion()
     }
 }
 
+//screen between players
 void Game::drawPvPSwitchScreen()
 {
     sf::Text title(uiFont);
@@ -1006,6 +1046,72 @@ void Game::drawPvPSwitchScreen()
         350.f
     });
 
+    window.draw(instruction);
+}
+
+
+void Game::drawSingleplayerResults()
+{
+    sf::Text title(uiFont);
+    title.setString("GAME OVER");
+    title.setCharacterSize(50);
+
+    title.setFillColor(sf::Color::Yellow);
+
+    title.setOutlineColor(sf::Color::Black);
+
+    title.setOutlineThickness(3.f);
+
+    sf::FloatRect bounds = title.getLocalBounds();
+
+    title.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        80.f
+    });
+
+    
+    sf::Text res(uiFont);
+
+    res.setString(
+        "Score: " + std::to_string(player->getScore())
+        + "\nLevel: "
+        + std::to_string(currentLevel));
+
+    res.setCharacterSize(30);
+
+    res.setFillColor(sf::Color::White);
+
+    res.setOutlineColor(sf::Color::Black);
+
+    res.setOutlineThickness(2.f);
+    
+    bounds = res.getLocalBounds();
+    res.setPosition({640.f - bounds.size.x / 2.f, 220.f});
+
+       
+    
+    sf::Text instruction(uiFont);
+    instruction.setString(
+        "PRESS ENTER TO RETURN TO MENU");
+    instruction.setCharacterSize(30);
+
+    instruction.setFillColor(sf::Color::Yellow);
+
+    instruction.setOutlineColor(sf::Color::Black);
+
+    instruction.setOutlineThickness(2.f);
+
+    bounds = instruction.getLocalBounds();
+
+    instruction.setPosition(
+    {
+        640.f - bounds.size.x / 2.f,
+        600.f
+    });
+
+    window.draw(title);
+    window.draw(res);
     window.draw(instruction);
 }
 

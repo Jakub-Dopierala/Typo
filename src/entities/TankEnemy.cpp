@@ -12,9 +12,9 @@ TankEnemy::TankEnemy(int level, std::size_t phraseLength)
     ENtype="TANK";
     if (texture.getSize().x == 0)
     {
-        if (!texture.loadFromFile("assets/textures/fast_gob.png"))
+        if (!texture.loadFromFile("assets/textures/tank_gob.png"))
         {
-            std::cerr << "Failed to load fast_gob.png\n";
+            std::cerr << "Failed to load tank_gob.png\n";
         }
         texture.setSmooth(false);
 
@@ -25,7 +25,8 @@ TankEnemy::TankEnemy(int level, std::size_t phraseLength)
     sprite.setScale({10.f, 10.f});
     sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
 
-    maxTime = 3.f + (0.25f * phraseLength) - (0.25f * level);
+    maxTime = 3.f + (0.25f * phraseLength) - (0.15f * level);
+    if(maxTime<5.f){maxTime=5.f;}
     remainingTime = maxTime;
 }
 
@@ -36,5 +37,4 @@ void TankEnemy::draw(sf::RenderWindow& window)
 
 void TankEnemy::onDefeat()
 {
-    // TODO
 }

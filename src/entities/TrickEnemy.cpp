@@ -25,6 +25,7 @@ TrickEnemy::TrickEnemy(int level, std::size_t phraseLength)
     sprite.setPosition({1280.f * 0.68f, 720.f * 0.60f});
 
     maxTime = 3.f + (0.35f * phraseLength) - (0.15f * level);
+    if(maxTime<4.f){maxTime=4.f;}
     remainingTime = maxTime;
 }
 
@@ -35,5 +36,4 @@ void TrickEnemy::draw(sf::RenderWindow& window)
 
 void TrickEnemy::onDefeat()
 {
-    // TODO
 }
